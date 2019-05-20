@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.shop.mapper.AdminMapper">
+
+	<sql id="basicsql">
+		id,aname,apwd
+	</sql>
+	<select id="findAll" resultType="Admin">
+		select
+		<include refid="basicsql" />
+		from 
+			t_admin
+	</select>
+	<select id="findById" parameterType="Integer" resultType="Admin">
+		select 
+		<include refid="basicsql" />
+		from 
+			t_admin 
+		where 
+			id=#{id}
+	</select>
+	<update id="update" parameterType="Admin">
+		update t_admin set aname=#{aname},apwd=md5(#{apwd}) where id=#{id}
+	</update>
+	
+	<delete id="delete" parameterType="Integer">
+		delete from t_admin where id=#{id}
+	</delete>
+	<insert id="insert" parameterType="Admin">
+		insert into t_admin values(null,#{aname},md5(#{apwd}))
+	</insert>
+</mapper>

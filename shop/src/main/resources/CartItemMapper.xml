@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.shop.mapper.CartItemMapper">
+	
+	<insert id="insert" parameterType="CartItem">
+		insert into t_cartitem values(null,#{productid},#{userid},#{pcount},#{unitprice},now())
+	</insert>
+	<!--  -->
+	<select id="findByUserid" parameterType="Integer" resultType="CartItem">
+		select * from t_cartitem where userid=#{userid}
+	</select>
+	<update id="updatePcount" parameterType="CartItem">
+		update t_cartitem set pcount=pcount+1 where id=#{id}
+	</update>
+</mapper>

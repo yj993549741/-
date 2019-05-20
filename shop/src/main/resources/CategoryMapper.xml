@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.shop.mapper.CategoryMapper">
+	
+	<!-- 将公共的字段提炼出来，给它一个名字（id），用的时候在用include引入 -->
+	<sql id="basicsql">
+		id,name,descr,pid,leaf,grade
+	</sql>
+	
+	<select id="findAll" resultMap="findToTree">
+		select 
+		<include refid="basicsql"/>
+	    from 
+	    	t_category
+	    <where>
+	    	pid=0
+	    </where>
+	    <!-- where的作用？如果输入错误就显示所有的情况 -->
+	</select>
+	
+	<select id="findByParentId" resultMap="findToTree">
+		select
+		<include refid="basicsql"/>
+		from 
+			t_category 
+		<where>
+			pid=#{id}
+		</where> 
+	</select>
+	<resultMap type="Category" id="findToTree">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="descr" column="descr"/>
+		<result property="pid" column="pid"/>
+		<result property="leaf" column="leaf"/>
+		<result property="grade" column="grade"/>
+		<collection property="children" column="id" ofType="Category" select="findByParentId"/>
+	</resultMap>
+	<!-- 添加根类别的sql语句 -->
+	<insert id="insert" parameterType="Category">
+		insert into t_category values(null,#{name},#{descr},0,1,1);
+	</insert>
+	 <!-- 添加子类别的sql语句 -->
+	<insert id="insertChild" parameterType="Category">
+		insert into t_category values(null,#{name},#{descr},#{pid},1,#{grade});
+	</insert>
+	<!-- 修改父节点 -->
+	<update id="updateParentLeaf" parameterType="Integer">
+		update t_category set leaf=0 where id=#{pid}
+	</update>
+	<!-- 通过id查找 自己-->
+	<select id="findById" parameterType="Integer" resultType="Category">
+		select 
+		<include refid="basicsql"/>
+		from
+			t_category
+		<where>
+			id=#{id}
+		</where>
+	</select>
+	<!-- 通过pid查找父亲 -->
+	<select id="findByPid" parameterType="Integer" resultType="Category">
+		select 
+		<include refid="basicsql"/>
+		from
+			t_category
+		<where>
+			pid=#{pid}
+		</where>
+	</select>
+	<!-- 查找三级类别名称 -->
+	<select id="findThree" resultType="Category">
+		select
+		<include refid="basicsql"/>
+		from
+			t_category
+	</select>
+</mapper>

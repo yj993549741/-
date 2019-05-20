@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neuedu.shop.mapper.ProductMapper">
+	<!-- 普通查询的sql语句 -->
+	<sql id="productsql">
+		id,name,descr,normalprice,memberprice,pdate,categoryid
+	</sql>
+	<!-- 复杂查询的sql语句 -->
+	<!-- 两表查询t_category t_product -->
+	<sql id="productvosql">
+		p.id pid,
+		p.name pname,
+		p.descr pdescr,
+		p.normalprice,
+		p.memberprice,
+		p.pdate,
+		p.categoryid,
+		p.imgpath,
+		c.id cid,
+		c.name cname,
+		c.descr cdescr,
+		c.pid cpid,
+		c.leaf,
+		c.grade
+	</sql>
+	<!-- 普通查询 -->
+	<select id="findAll" resultMap="findByCondition">
+		select 
+		<include refid="productvosql"/>
+	     from 
+	     	t_product p join t_category c on p.categoryid=c.id
+	</select>
+	<insert id="insert" parameterType="Product">
+		insert into t_product values(null,#{name},#{descr},#{normalprice},#{memberprice},now(),#{categoryid},#{imgPath})
+	</insert>
+	<!-- 复杂条件查询 -->
+	<select id="findByCondition" resultMap="findByCondition">
+		select 
+		<include refid="productvosql"/>
+		from
+			t_product p join t_category c on p.categoryid = c.id
+		<where>
+			<if test="keywords!=null">
+				p.descr like concat("%",#{keywords},"%") or p.name like concat("%",#{keywords},"%")
+			</if>
+			<if test="category!=null">
+				and p.categoryid=#{cid}
+			</if>
+			<if test="startDate!=null and endDate!=null">
+				and p.pdate between #{startDate} and #{endDate}
+			</if>
+			<if test="lowPrice!=null and highPrice!=null">
+				and p.normalprice between #{lowPrice} and #{highPrice}
+			</if>
+		</where>
+	</select>
+	<resultMap type="Product" id="findByCondition">
+		<id property="id" column="pid"/>
+		<result property="name" column="pname"/>
+		<result property="descr" column="pdescr"/>
+		<result property="normalprice" column="normalprice"/>
+		<result property="memberprice" column="memberprice"/>
+		<result property="pdate" column="pdate"/>
+		<result property="imgPath" column="imgpath"/>
+		<association property="category" javaType="Category">
+			<id property="id" column="cid"/>
+			<result property="name" column="cname"/>
+			<result property="descr" column="cdescr"/>
+			<result property="pid" column="cpid"/>
+			<result property="leaf" column="leaf"/>
+			<result property="grade" column="grade"/>
+		</association>
+	</resultMap>
+	<!-- 通过id删除商品 -->
+	<delete id="delete" parameterType="Integer">
+		delete from t_product where id=#{id}
+	</delete>
+	<!-- 最新商品查询 -->
+	<select id="lastProduct" resultMap="findByCondition" parameterType="Integer">
+		select 
+		<include refid="productvosql" />
+		from 
+			t_product p join t_category c on p.categoryid = c.id
+
+			order by pdate desc
+		limit #{pageNo},1
+	</select>
+	<!-- 查询推荐商品 -->
+	<!--  <select id="findById" resultType="findByCondition" parameterType="Integer">
+		select 
+		<include refid="productvosql" />
+		from 
+			t_product p join t_category c on p.categoryid = c.id
+			
+		order by pdate asc
+		
+		limit #{id},3
+	</select> -->
+</mapper>
